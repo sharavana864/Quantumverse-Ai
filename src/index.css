@@ -1,0 +1,63 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    --bg-dark: #121212;
+    --primary-dark: #7F00FF;
+    --accent-dark: #A3FF00;
+    --secondary-dark: #FF66CC;
+    --text-dark: #EAEAEA;
+    --highlight-dark: #C0C0C0;
+
+    --bg-light: #FAFAFA;
+    --primary-light: #333333;
+    --accent-light: #00B894;
+    --secondary-light: #FFC312;
+    --text-light: #1C1C1C;
+    --highlight-light: #9B59B6;
+  }
+
+  body {
+    font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+  }
+
+  code, pre, .font-mono {
+    font-family: 'JetBrains Mono', 'Fira Code', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  }
+}
+
+/* Glowing effects and custom scrollbars */
+.glow-violet {
+  box-shadow: 0 0 20px rgba(127, 0, 255, 0.35);
+}
+
+.glow-violet-lg {
+  box-shadow: 0 0 35px rgba(127, 0, 255, 0.5);
+}
+
+.glow-lime {
+  box-shadow: 0 0 20px rgba(163, 255, 0, 0.4);
+}
+
+.glow-emerald {
+  box-shadow: 0 0 20px rgba(0, 184, 148, 0.35);
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(127, 0, 255, 0.3);
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(127, 0, 255, 0.6);
+}
