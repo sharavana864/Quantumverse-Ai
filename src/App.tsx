@@ -410,10 +410,7 @@ function BlochSpherePage({ theme }: { theme: "dark" | "light" }) {
 export function App() {
   const [theme, setTheme] = useState<"dark" | "light">("dark");
 
-  const [isLoggedIn, setIsLoggedIn] = useState<boolean>(() => {
-    const savedLoggedIn = localStorage.getItem("qv_is_logged_in");
-    return savedLoggedIn !== "false"; // Default to true for prototype mode
-  });
+  const [isLoggedIn, setIsLoggedIn] = useState<boolean>(true);
 
   const [userProfile, setUserProfile] = useState<UserProfile>(() => {
     const savedUser = localStorage.getItem("qv_current_user");
@@ -429,34 +426,37 @@ export function App() {
 
   const [selectedModuleId, setSelectedModuleId] = useState<string>("mod-1");
 
-  // Listen for Firebase Auth state changes
+  // Optional background Firebase Auth state listener (non-blocking)
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       if (firebaseUser) {
         try {
           const profile = await syncUserProfile(firebaseUser);
           setUserProfile(profile);
-          setIsLoggedIn(true);
         } catch (err) {
-          console.error("Error syncing user profile on auth state change:", err);
+          console.warn("Firebase Auth sync skipped:", err);
         }
       }
     });
     return () => unsubscribe();
   }, []);
 
-  // Save session state to localStorage instantly, and debounce Firestore sync to prevent UI lag
+  // Save session state to localStorage instantly, and try Firestore sync if logged in on Firebase
   useEffect(() => {
-    localStorage.setItem("qv_is_logged_in", isLoggedIn ? "true" : "false");
+    localStorage.setItem("qv_is_logged_in", "true");
     localStorage.setItem("qv_current_user", JSON.stringify(userProfile));
 
     if (auth.currentUser) {
       const timer = setTimeout(() => {
-        saveUserProfileToFirestore(auth.currentUser!.uid, userProfile);
+        try {
+          saveUserProfileToFirestore(auth.currentUser!.uid, userProfile);
+        } catch (err) {
+          console.warn("Firestore save skipped:", err);
+        }
       }, 1000);
       return () => clearTimeout(timer);
     }
-  }, [isLoggedIn, userProfile]);
+  }, [userProfile]);
 
   // Modals
   const [isAITutorOpen, setIsAITutorOpen] = useState<boolean>(false);
@@ -482,9 +482,10 @@ export function App() {
     try {
       await signOut(auth);
     } catch (err) {
-      console.error("Sign out error:", err);
+      console.warn("Sign out skipped:", err);
     }
-    setIsLoggedIn(false);
+    setUserProfile(INITIAL_USER_PROFILE);
+    localStorage.setItem("qv_current_user", JSON.stringify(INITIAL_USER_PROFILE));
   };
 
   const handleOpenAITutorWithTopic = (topic: string) => {
@@ -566,13 +567,7 @@ export function App() {
         <Navigation
           userProfile={userProfile}
           onOpenAITutor={() => handleOpenAITutorWithTopic("Quantum Computing Overview")}
-          onOpenAuthModal={() => {
-            if (!isLoggedIn) {
-              setIsLoggedIn(false);
-            } else {
-              setIsAuthModalOpen(true);
-            }
-          }}
+          onOpenAuthModal={() => setIsAuthModalOpen(true)}
           onLogout={handleLogout}
           theme={theme}
           onToggleTheme={toggleTheme}
@@ -580,23 +575,26 @@ export function App() {
 
         {/* Main Content Router */}
         <main className="w-full max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-6 sm:py-8 overflow-x-hidden">
-          {!isLoggedIn ? (
-            <LoginPortal
-              onLoginSuccess={handleLoginSuccess}
-              onExploreGuest={() => setIsLoggedIn(true)}
-              theme={theme}
+          <Routes>
+            <Route
+              path="/login"
+              element={
+                <LoginPortal
+                  onLoginSuccess={handleLoginSuccess}
+                  onExploreGuest={() => {}}
+                  theme={theme}
+                />
+              }
             />
-          ) : (
-            <Routes>
-              <Route
-                path="/"
-                element={
-                  <DashboardView
-                    userProfile={userProfile}
-                    theme={theme}
-                  />
-                }
-              />
+            <Route
+              path="/"
+              element={
+                <DashboardView
+                  userProfile={userProfile}
+                  theme={theme}
+                />
+              }
+            />
               <Route
                 path="/learn"
                 element={
@@ -637,7 +635,6 @@ export function App() {
               <Route path="/about" element={<AboutView theme={theme} />} />
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
-          )}
         </main>
 
         {/* Modals */}
