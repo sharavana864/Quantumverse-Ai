@@ -39,6 +39,13 @@ import { LoginPortal } from "./components/LoginPortal";
 import { MODULES_DATA } from "./data/modulesData";
 import { INITIAL_USER_PROFILE } from "./data/userProfile";
 import { UserProfile } from "./types";
+import {
+  auth,
+  signOut,
+  syncUserProfile,
+  saveUserProfileToFirestore,
+  onAuthStateChanged,
+} from "./lib/firebase";
 
 // Famous Quantum Scientist Quotes Data
 const QUANTUM_QUOTES = [
@@ -421,10 +428,30 @@ export function App() {
 
   const [selectedModuleId, setSelectedModuleId] = useState<string>("mod-1");
 
-  // Save session state to localStorage
+  // Listen for Firebase Auth state changes
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+      if (firebaseUser) {
+        try {
+          const profile = await syncUserProfile(firebaseUser);
+          setUserProfile(profile);
+          setIsLoggedIn(true);
+        } catch (err) {
+          console.error("Error syncing user profile on auth state change:", err);
+        }
+      }
+    });
+    return () => unsubscribe();
+  }, []);
+
+  // Save session state to localStorage and sync updates to Firestore
   useEffect(() => {
     localStorage.setItem("qv_is_logged_in", isLoggedIn ? "true" : "false");
     localStorage.setItem("qv_current_user", JSON.stringify(userProfile));
+
+    if (auth.currentUser) {
+      saveUserProfileToFirestore(auth.currentUser.uid, userProfile);
+    }
   }, [isLoggedIn, userProfile]);
 
   // Modals
@@ -442,9 +469,17 @@ export function App() {
   const handleLoginSuccess = (profile: UserProfile) => {
     setUserProfile(profile);
     setIsLoggedIn(true);
+    if (auth.currentUser) {
+      saveUserProfileToFirestore(auth.currentUser.uid, profile);
+    }
   };
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    try {
+      await signOut(auth);
+    } catch (err) {
+      console.error("Sign out error:", err);
+    }
     setIsLoggedIn(false);
   };
 

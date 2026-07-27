@@ -1,0 +1,23 @@
+{
+  "entities": {
+    "users": {
+      "title": "users",
+      "description": "User profiles stored in Firestore",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "name": { "type": "string" },
+        "email": { "type": "string" },
+        "authProvider": { "type": "string" },
+        "avatar": { "type": "string" },
+        "bio": { "type": "string" },
+        "title": { "type": "string" },
+        "streakDays": { "type": "number" },
+        "totalXP": { "type": "number" },
+        "level": { "type": "number" },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["uid", "email"]
+    }
+  }
+}
