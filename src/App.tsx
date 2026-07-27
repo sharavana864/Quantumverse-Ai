@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { BrowserRouter, Routes, Route, Navigate, Link } from "react-router-dom";
 import {
   Layers,
@@ -34,6 +34,7 @@ import { GamificationView } from "./components/GamificationView";
 import { CareerGuidance } from "./components/CareerGuidance";
 import { AboutView } from "./components/AboutView";
 import { AuthModal } from "./components/AuthModal";
+import { LoginPortal } from "./components/LoginPortal";
 
 import { MODULES_DATA } from "./data/modulesData";
 import { INITIAL_USER_PROFILE } from "./data/userProfile";
@@ -400,8 +401,31 @@ function BlochSpherePage({ theme }: { theme: "dark" | "light" }) {
 
 export function App() {
   const [theme, setTheme] = useState<"dark" | "light">("dark");
-  const [userProfile, setUserProfile] = useState<UserProfile>(INITIAL_USER_PROFILE);
+
+  const [isLoggedIn, setIsLoggedIn] = useState<boolean>(() => {
+    const savedLoggedIn = localStorage.getItem("qv_is_logged_in");
+    return savedLoggedIn === "true";
+  });
+
+  const [userProfile, setUserProfile] = useState<UserProfile>(() => {
+    const savedUser = localStorage.getItem("qv_current_user");
+    if (savedUser) {
+      try {
+        return JSON.parse(savedUser);
+      } catch (e) {
+        // fallback
+      }
+    }
+    return INITIAL_USER_PROFILE;
+  });
+
   const [selectedModuleId, setSelectedModuleId] = useState<string>("mod-1");
+
+  // Save session state to localStorage
+  useEffect(() => {
+    localStorage.setItem("qv_is_logged_in", isLoggedIn ? "true" : "false");
+    localStorage.setItem("qv_current_user", JSON.stringify(userProfile));
+  }, [isLoggedIn, userProfile]);
 
   // Modals
   const [isAITutorOpen, setIsAITutorOpen] = useState<boolean>(false);
@@ -413,6 +437,15 @@ export function App() {
 
   const toggleTheme = () => {
     setTheme((prev) => (prev === "dark" ? "light" : "dark"));
+  };
+
+  const handleLoginSuccess = (profile: UserProfile) => {
+    setUserProfile(profile);
+    setIsLoggedIn(true);
+  };
+
+  const handleLogout = () => {
+    setIsLoggedIn(false);
   };
 
   const handleOpenAITutorWithTopic = (topic: string) => {
@@ -466,53 +499,78 @@ export function App() {
         <Navigation
           userProfile={userProfile}
           onOpenAITutor={() => handleOpenAITutorWithTopic("Quantum Computing Overview")}
-          onOpenAuthModal={() => setIsAuthModalOpen(true)}
+          onOpenAuthModal={() => {
+            if (!isLoggedIn) {
+              setIsLoggedIn(false);
+            } else {
+              setIsAuthModalOpen(true);
+            }
+          }}
+          onLogout={handleLogout}
           theme={theme}
           onToggleTheme={toggleTheme}
         />
 
         {/* Main Content Router */}
         <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <Routes>
-            <Route
-              path="/"
-              element={
-                <DashboardView
-                  userProfile={userProfile}
-                  theme={theme}
-                />
-              }
+          {!isLoggedIn ? (
+            <LoginPortal
+              onLoginSuccess={handleLoginSuccess}
+              onExploreGuest={() => setIsLoggedIn(true)}
+              theme={theme}
             />
-            <Route
-              path="/learn"
-              element={
-                <ModuleViewer
-                  modules={MODULES_DATA}
-                  selectedModuleId={selectedModuleId}
-                  onSelectModule={setSelectedModuleId}
-                  onOpenQuiz={handleOpenQuiz}
-                  onOpenAITutorWithTopic={handleOpenAITutorWithTopic}
-                  onOpenBlochSphere={() => {}}
-                  onOpenCircuitBuilder={() => {}}
-                  onGainXP={handleGainXP}
-                  theme={theme}
-                />
-              }
-            />
-            <Route path="/bloch" element={<BlochSpherePage theme={theme} />} />
-            <Route path="/circuit" element={<CircuitBuilder theme={theme} />} />
-            <Route
-              path="/playground"
-              element={<CodingPlayground onChallengeSolved={handleChallengeSolved} theme={theme} />}
-            />
-            <Route path="/flashcards" element={<FlashcardsView theme={theme} />} />
-            <Route path="/gamification" element={<GamificationView theme={theme} />} />
-            <Route path="/events" element={<EventsHub theme={theme} />} />
-            <Route path="/career" element={<CareerGuidance theme={theme} />} />
-            <Route path="/profile" element={<ProfileView userProfile={userProfile} onUpdateProfile={handleUpdateProfile} theme={theme} />} />
-            <Route path="/about" element={<AboutView theme={theme} />} />
-            <Route path="*" element={<Navigate to="/" replace />} />
-          </Routes>
+          ) : (
+            <Routes>
+              <Route
+                path="/"
+                element={
+                  <DashboardView
+                    userProfile={userProfile}
+                    theme={theme}
+                  />
+                }
+              />
+              <Route
+                path="/learn"
+                element={
+                  <ModuleViewer
+                    modules={MODULES_DATA}
+                    selectedModuleId={selectedModuleId}
+                    onSelectModule={setSelectedModuleId}
+                    onOpenQuiz={handleOpenQuiz}
+                    onOpenAITutorWithTopic={handleOpenAITutorWithTopic}
+                    onOpenBlochSphere={() => {}}
+                    onOpenCircuitBuilder={() => {}}
+                    onGainXP={handleGainXP}
+                    theme={theme}
+                  />
+                }
+              />
+              <Route path="/bloch" element={<BlochSpherePage theme={theme} />} />
+              <Route path="/circuit" element={<CircuitBuilder theme={theme} />} />
+              <Route
+                path="/playground"
+                element={<CodingPlayground onChallengeSolved={handleChallengeSolved} theme={theme} />}
+              />
+              <Route path="/flashcards" element={<FlashcardsView theme={theme} />} />
+              <Route path="/gamification" element={<GamificationView userProfile={userProfile} theme={theme} />} />
+              <Route path="/events" element={<EventsHub theme={theme} />} />
+              <Route path="/career" element={<CareerGuidance theme={theme} />} />
+              <Route
+                path="/profile"
+                element={
+                  <ProfileView
+                    userProfile={userProfile}
+                    onUpdateProfile={handleUpdateProfile}
+                    onLogout={handleLogout}
+                    theme={theme}
+                  />
+                }
+              />
+              <Route path="/about" element={<AboutView theme={theme} />} />
+              <Route path="*" element={<Navigate to="/" replace />} />
+            </Routes>
+          )}
         </main>
 
         {/* Modals */}

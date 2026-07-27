@@ -15,15 +15,19 @@ import {
 } from "lucide-react";
 import { UserProfile } from "../types";
 
+import { LogOut } from "lucide-react";
+
 interface ProfileViewProps {
   userProfile: UserProfile;
   onUpdateProfile?: (updated: Partial<UserProfile>) => void;
+  onLogout?: () => void;
   theme?: "dark" | "light";
 }
 
 export const ProfileView: React.FC<ProfileViewProps> = ({
   userProfile,
   onUpdateProfile,
+  onLogout,
   theme = "dark",
 }) => {
   const isDark = theme === "dark";
@@ -186,6 +190,19 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
               <Share2 className={`w-4 h-4 ${isDark ? "text-[#A3FF00]" : "text-[#FFC312]"}`} />
               <span>Export Portfolio</span>
             </button>
+
+            {onLogout && (
+              <button
+                onClick={onLogout}
+                className={`px-4 py-3 rounded-2xl text-xs font-bold uppercase tracking-wider shadow-md transition-all border flex items-center space-x-2 ${
+                  isDark ? "bg-[#121212] hover:bg-rose-950/40 text-rose-400 border-rose-500/30" : "bg-rose-50 hover:bg-rose-100 text-rose-700 border-rose-200"
+                }`}
+                title="Log out and switch person profile"
+              >
+                <LogOut className="w-4 h-4 text-rose-500" />
+                <span>Switch Person / Logout</span>
+              </button>
+            )}
           </div>
         </div>
       </div>

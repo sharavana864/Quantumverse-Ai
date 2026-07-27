@@ -22,10 +22,13 @@ import {
 } from "lucide-react";
 import { UserProfile } from "../types";
 
+import { LogOut } from "lucide-react";
+
 interface NavigationProps {
   userProfile: UserProfile;
   onOpenAITutor: () => void;
   onOpenAuthModal: () => void;
+  onLogout?: () => void;
   theme: "dark" | "light";
   onToggleTheme: () => void;
 }
@@ -34,6 +37,7 @@ export const Navigation: React.FC<NavigationProps> = ({
   userProfile,
   onOpenAITutor,
   onOpenAuthModal,
+  onLogout,
   theme,
   onToggleTheme,
 }) => {
@@ -217,34 +221,51 @@ export const Navigation: React.FC<NavigationProps> = ({
             </div>
 
             {/* User Profile Pill */}
-            <button
-              onClick={onOpenAuthModal}
-              className={`flex items-center space-x-2 border rounded-2xl p-1 pr-3 transition-all shadow-sm ${
-                isDark
-                  ? "bg-[#121212] border-[#7F00FF]/40 hover:border-[#A3FF00]"
-                  : "bg-white border-[#333333]/20 hover:border-[#00B894]"
-              }`}
-            >
-              <img
-                src={userProfile.avatar}
-                alt={userProfile.name}
-                className={`w-7 h-7 rounded-xl object-cover ring-2 ${
-                  isDark ? "ring-[#A3FF00]" : "ring-[#00B894]"
+            <div className="flex items-center space-x-1">
+              <button
+                onClick={onOpenAuthModal}
+                className={`flex items-center space-x-2 border rounded-2xl p-1 pr-3 transition-all shadow-sm ${
+                  isDark
+                    ? "bg-[#121212] border-[#7F00FF]/40 hover:border-[#A3FF00]"
+                    : "bg-white border-[#333333]/20 hover:border-[#00B894]"
                 }`}
-              />
-              <div className="text-left leading-none">
-                <span className={`block text-xs font-black max-w-[90px] truncate ${
-                  isDark ? "text-white" : "text-[#1C1C1C]"
-                }`}>
-                  {userProfile.name}
-                </span>
-                <span className={`block text-[9px] font-mono font-extrabold ${
-                  isDark ? "text-[#A3FF00]" : "text-[#00B894]"
-                }`}>
-                  Lvl {userProfile.level}
-                </span>
-              </div>
-            </button>
+                title="View & edit account details"
+              >
+                <img
+                  src={userProfile.avatar}
+                  alt={userProfile.name}
+                  className={`w-7 h-7 rounded-xl object-cover ring-2 ${
+                    isDark ? "ring-[#A3FF00]" : "ring-[#00B894]"
+                  }`}
+                />
+                <div className="text-left leading-none">
+                  <span className={`block text-xs font-black max-w-[90px] truncate ${
+                    isDark ? "text-white" : "text-[#1C1C1C]"
+                  }`}>
+                    {userProfile.name}
+                  </span>
+                  <span className={`block text-[9px] font-mono font-extrabold ${
+                    isDark ? "text-[#A3FF00]" : "text-[#00B894]"
+                  }`}>
+                    Lvl {userProfile.level}
+                  </span>
+                </div>
+              </button>
+
+              {onLogout && (
+                <button
+                  onClick={onLogout}
+                  className={`p-2 rounded-2xl border transition-all hover:scale-105 active:scale-95 ${
+                    isDark
+                      ? "bg-[#121212] border-rose-500/30 text-rose-400 hover:bg-rose-950/40"
+                      : "bg-rose-50 border-rose-200 text-rose-600 hover:bg-rose-100"
+                  }`}
+                  title="Switch Person / Logout"
+                >
+                  <LogOut className="w-4 h-4" />
+                </button>
+              )}
+            </div>
           </div>
 
           {/* Mobile Buttons */}

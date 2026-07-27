@@ -6,64 +6,71 @@ import {
   Users,
   Sparkles
 } from "lucide-react";
-import { LeaderboardEntry } from "../types";
-
-const INITIAL_LEADERBOARD: LeaderboardEntry[] = [
-  {
-    rank: 1,
-    name: "Dr. Evelyn Reed",
-    avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=256",
-    xp: 2850,
-    streak: 7,
-    badgesCount: 5,
-    title: "Senior Quantum Scholar",
-    isCurrentUser: true,
-  },
-  {
-    rank: 2,
-    name: "Alex Chen",
-    avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=256",
-    xp: 2620,
-    streak: 14,
-    badgesCount: 6,
-    title: "IBM Qiskit Developer",
-  },
-  {
-    rank: 3,
-    name: "Sophia Martinez",
-    avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&q=80&w=256",
-    xp: 2410,
-    streak: 5,
-    badgesCount: 4,
-    title: "PennyLane QML Fellow",
-  },
-  {
-    rank: 4,
-    name: "Marcus Vance",
-    avatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&q=80&w=256",
-    xp: 2180,
-    streak: 11,
-    badgesCount: 4,
-    title: "Hardware Researcher",
-  },
-  {
-    rank: 5,
-    name: "Aria Tanaka",
-    avatar: "https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&q=80&w=256",
-    xp: 1950,
-    streak: 3,
-    badgesCount: 3,
-    title: "Quantum Algorithm Enthusiast",
-  },
-];
+import { LeaderboardEntry, UserProfile } from "../types";
 
 interface GamificationViewProps {
+  userProfile?: UserProfile;
   theme?: "dark" | "light";
 }
 
-export const GamificationView: React.FC<GamificationViewProps> = ({ theme = "dark" }) => {
+export const GamificationView: React.FC<GamificationViewProps> = ({ userProfile, theme = "dark" }) => {
   const isDark = theme === "dark";
-  const [leaderboard] = useState<LeaderboardEntry[]>(INITIAL_LEADERBOARD);
+
+  const userXP = userProfile?.totalXP ?? 0;
+  const userName = userProfile?.name ?? "Sharavanakumar";
+  const userAvatar = userProfile?.avatar ?? "https://api.dicebear.com/7.x/bottts/svg?seed=Sharavanakumar";
+  const userTitle = userProfile?.title ?? "Quantum Scholar";
+  const userStreak = userProfile?.streakDays ?? 0;
+
+  const leaderboardData: LeaderboardEntry[] = [
+    {
+      rank: 1,
+      name: "Dr. Evelyn Reed",
+      avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=256",
+      xp: 4200,
+      streak: 14,
+      badgesCount: 8,
+      title: "Senior Quantum Fellow",
+    },
+    {
+      rank: userXP >= 4200 ? 1 : userXP >= 2620 ? 2 : userXP >= 2410 ? 3 : 4,
+      name: userName,
+      avatar: userAvatar,
+      xp: userXP,
+      streak: userStreak,
+      badgesCount: userProfile?.badges.filter(b => b.unlocked).length ?? 0,
+      title: userTitle,
+      isCurrentUser: true,
+    },
+    {
+      rank: 3,
+      name: "Alex Chen",
+      avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=256",
+      xp: 2620,
+      streak: 14,
+      badgesCount: 6,
+      title: "IBM Qiskit Developer",
+    },
+    {
+      rank: 4,
+      name: "Sophia Martinez",
+      avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&q=80&w=256",
+      xp: 2410,
+      streak: 5,
+      badgesCount: 4,
+      title: "PennyLane QML Fellow",
+    },
+    {
+      rank: 5,
+      name: "Marcus Vance",
+      avatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&q=80&w=256",
+      xp: 2180,
+      streak: 11,
+      badgesCount: 4,
+      title: "Hardware Researcher",
+    },
+  ].sort((a, b) => b.xp - a.xp).map((item, idx) => ({ ...item, rank: idx + 1 }));
+
   const [battleActive, setBattleActive] = useState<boolean>(false);
   const [battleResult, setBattleResult] = useState<string | null>(null);
 
@@ -74,10 +81,11 @@ export const GamificationView: React.FC<GamificationViewProps> = ({ theme = "dar
     setTimeout(() => {
       setBattleActive(false);
       setBattleResult(
-        "VICTORY! You created a Bell state in 1.2s with 100% fidelity vs Alex Chen. +150 XP awarded!"
+        `VICTORY! You created a Bell state in 1.2s with 100% fidelity vs Alex Chen. +150 XP awarded to ${userName}!`
       );
     }, 1800);
   };
+
 
   return (
     <div className={`space-y-8 max-w-7xl mx-auto transition-colors ${isDark ? "text-white" : "text-slate-900"}`}>
@@ -110,7 +118,7 @@ export const GamificationView: React.FC<GamificationViewProps> = ({ theme = "dar
           </div>
 
           <div className={`divide-y ${isDark ? "divide-white/10" : "divide-slate-200"}`}>
-            {leaderboard.map((user) => (
+            {leaderboardData.map((user) => (
               <div
                 key={user.rank}
                 className={`p-3.5 rounded-2xl flex items-center justify-between transition-all ${
