@@ -157,7 +157,7 @@ export const AboutView: React.FC<AboutViewProps> = ({ theme = "dark" }) => {
         </div>
       </div>
 
-      {/* Footer Info: Date, Version & Built By Sharavanakumar */}
+      {/* Footer Info: Date & Version */}
       <div className={`rounded-3xl p-6 border space-y-4 text-center transition-all ${
         isDark ? "bg-[#121212] border-white/10" : "bg-slate-100 border-slate-200"
       }`}>
@@ -176,9 +176,9 @@ export const AboutView: React.FC<AboutViewProps> = ({ theme = "dark" }) => {
         </div>
 
         <div className={`pt-3 border-t text-xs space-y-1 ${isDark ? "border-white/10 text-[#C0C0C0]" : "border-slate-200 text-slate-600"}`}>
-          <p className="font-semibold uppercase tracking-wider">QuantumVerse AI Ecosystem • Inspired by Duolingo</p>
+          <p className="font-semibold uppercase tracking-wider">QuantumVerse AI Ecosystem • Gamified Quantum Learning</p>
           <p className="text-[11px] font-mono font-black text-[#FF66CC] uppercase tracking-widest">
-            Built by Sharavanakumar
+            Empowering the Next Generation of Quantum Pioneers
           </p>
         </div>
       </div>

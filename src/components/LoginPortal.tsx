@@ -28,9 +28,9 @@ export const LoginPortal: React.FC<LoginPortalProps> = ({
   const [activeTab, setActiveTab] = useState<"login" | "signup">("login");
 
   // Sign In State
-  const [nameInput, setNameInput] = useState("Sharavanakumar");
-  const [emailInput, setEmailInput] = useState("sharavanakumar864@gmail.com");
-  const [passwordInput, setPasswordInput] = useState("••••••••••••");
+  const [nameInput, setNameInput] = useState("");
+  const [emailInput, setEmailInput] = useState("");
+  const [passwordInput, setPasswordInput] = useState("");
 
   // Custom User Sign Up State
   const [newName, setNewName] = useState("");
@@ -41,8 +41,8 @@ export const LoginPortal: React.FC<LoginPortalProps> = ({
   const [notification, setNotification] = useState<string | null>(null);
 
   const handleGoogleQuickSignIn = () => {
-    const name = nameInput.trim() || "Sharavanakumar";
-    const email = emailInput.trim() || "sharavanakumar864@gmail.com";
+    const name = nameInput.trim() || "Google Quantum User";
+    const email = emailInput.trim() || "user@gmail.com";
     const user = createNewUserProfile(name, email, "google");
 
     setNotification(`Google SSO Verified! Signing in as ${user.name}...`);

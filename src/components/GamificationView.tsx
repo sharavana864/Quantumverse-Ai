@@ -17,8 +17,8 @@ export const GamificationView: React.FC<GamificationViewProps> = ({ userProfile,
   const isDark = theme === "dark";
 
   const userXP = userProfile?.totalXP ?? 0;
-  const userName = userProfile?.name ?? "Sharavanakumar";
-  const userAvatar = userProfile?.avatar ?? "https://api.dicebear.com/7.x/bottts/svg?seed=Sharavanakumar";
+  const userName = userProfile?.name ?? "Quantum Learner";
+  const userAvatar = userProfile?.avatar ?? "https://api.dicebear.com/7.x/bottts/svg?seed=QuantumLearner";
   const userTitle = userProfile?.title ?? "Quantum Scholar";
   const userStreak = userProfile?.streakDays ?? 0;
 
