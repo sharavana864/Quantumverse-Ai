@@ -44,6 +44,28 @@ export {
 export type { FirebaseUser };
 
 /**
+ * Helper to recursively strip `undefined` values so Firestore setDoc / updateDoc does not throw
+ */
+export function sanitizeForFirestore<T>(data: T): T {
+  if (data === null || data === undefined) {
+    return null as any;
+  }
+  if (Array.isArray(data)) {
+    return data.map((item) => sanitizeForFirestore(item)) as any;
+  }
+  if (typeof data === "object") {
+    const cleanObj: any = {};
+    for (const [key, value] of Object.entries(data)) {
+      if (value !== undefined) {
+        cleanObj[key] = sanitizeForFirestore(value);
+      }
+    }
+    return cleanObj;
+  }
+  return data;
+}
+
+/**
  * Sync or create user profile document in Firestore upon authentication
  */
 export async function syncUserProfile(user: FirebaseUser, extraName?: string): Promise<UserProfile> {
@@ -66,7 +88,7 @@ export async function syncUserProfile(user: FirebaseUser, extraName?: string): P
       leetcodeUsername: data.leetcodeUsername || (user.email ? user.email.split("@")[0] : "user"),
       linkedinUrl: data.linkedinUrl || "https://linkedin.com",
       heatMapData: data.heatMapData || {},
-      badges: data.badges || INITIAL_BADGES.map((b) => ({ ...b, unlocked: false, unlockedAt: undefined })),
+      badges: data.badges || INITIAL_BADGES.map(({ unlockedAt, ...b }) => ({ ...b, unlocked: false })),
       completedLessonIds: data.completedLessonIds || [],
       solvedChallengeIds: data.solvedChallengeIds || [],
       certificates: data.certificates || [],
@@ -88,17 +110,19 @@ export async function syncUserProfile(user: FirebaseUser, extraName?: string): P
       leetcodeUsername: user.email ? user.email.split("@")[0] : "user",
       linkedinUrl: "https://linkedin.com",
       heatMapData: {},
-      badges: INITIAL_BADGES.map((b) => ({ ...b, unlocked: false, unlockedAt: undefined })),
+      badges: INITIAL_BADGES.map(({ unlockedAt, ...b }) => ({ ...b, unlocked: false })),
       completedLessonIds: [],
       solvedChallengeIds: [],
       certificates: [],
     };
 
-    await setDoc(userRef, {
+    const payload = sanitizeForFirestore({
       ...newProfile,
       uid: user.uid,
       createdAt: new Date().toISOString(),
     });
+
+    await setDoc(userRef, payload);
 
     return newProfile;
   }
@@ -110,7 +134,8 @@ export async function syncUserProfile(user: FirebaseUser, extraName?: string): P
 export async function saveUserProfileToFirestore(uid: string, updates: Partial<UserProfile>): Promise<void> {
   try {
     const userRef = doc(db, "users", uid);
-    await updateDoc(userRef, updates);
+    const cleanUpdates = sanitizeForFirestore(updates);
+    await setDoc(userRef, cleanUpdates, { merge: true });
   } catch (err) {
     console.error("Failed to save profile to Firestore:", err);
   }
