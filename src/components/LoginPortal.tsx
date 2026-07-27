@@ -64,8 +64,12 @@ export const LoginPortal: React.FC<LoginPortalProps> = ({
       console.error("Google Auth Error:", err);
       if (err.code === "auth/popup-closed-by-user") {
         setErrorMsg("Sign-in popup was closed before completing.");
+      } else if (err.code === "auth/unauthorized-domain") {
+        setErrorMsg("Domain not authorized in Firebase Console. Please use Email/Password sign in or Guest Access.");
+      } else if (err.code === "auth/operation-not-allowed") {
+        setErrorMsg("Google Provider is disabled in Firebase Auth settings. Please sign in with Email or Guest Mode.");
       } else {
-        setErrorMsg(err.message || "Failed to authenticate with Google.");
+        setErrorMsg(err.message || "Google Sign-In failed. Please try Email/Password sign in or Guest Access below.");
       }
     } finally {
       setIsLoading(false);
