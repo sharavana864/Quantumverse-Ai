@@ -1,4 +1,5 @@
 import { initializeApp, getApps, getApp } from "firebase/app";
+import { getAnalytics, isSupported, Analytics } from "firebase/analytics";
 import {
   getAuth,
   GoogleAuthProvider,
@@ -16,20 +17,41 @@ import {
   setDoc,
   updateDoc,
 } from "firebase/firestore";
-import firebaseConfig from "../../firebase-applet-config.json";
+import firebaseConfigFile from "../../firebase-applet-config.json";
 import { UserProfile } from "../types";
 import { INITIAL_BADGES } from "../data/badgesData";
 
+// Structured & exported Firebase Configuration
+export const firebaseConfig = {
+  apiKey: firebaseConfigFile.apiKey || "AIzaSyAcRIuue53TgrLwIgEgZ0hJsgegFDe-tx0",
+  authDomain: firebaseConfigFile.authDomain || "quantumverse-app.firebaseapp.com",
+  projectId: firebaseConfigFile.projectId || "quantumverse-app",
+  storageBucket: firebaseConfigFile.storageBucket || "quantumverse-app.firebasestorage.app",
+  messagingSenderId: firebaseConfigFile.messagingSenderId || "67263678998",
+  appId: firebaseConfigFile.appId || "1:67263678998:web:7a6897e29e87398b058337",
+  measurementId: firebaseConfigFile.measurementId || "G-GXN701XY5V",
+  firestoreDatabaseId: (firebaseConfigFile as { firestoreDatabaseId?: string }).firestoreDatabaseId || "ai-studio-quantumverseai-b1443510-769b-4601-987d-d266f812fa43",
+};
+
 // Initialize Firebase App
-const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
+export const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
+
+// Initialize Analytics (safely in browser environments)
+export let analytics: Analytics | null = null;
+if (typeof window !== "undefined") {
+  isSupported().then((supported) => {
+    if (supported) {
+      analytics = getAnalytics(app);
+    }
+  }).catch(() => {});
+}
 
 // Initialize Auth
 export const auth = getAuth(app);
 
 // Initialize Firestore with custom database ID if present, or default
-const customDbId = (firebaseConfig as { firestoreDatabaseId?: string }).firestoreDatabaseId;
-export const db = customDbId
-  ? getFirestore(app, customDbId)
+export const db = firebaseConfig.firestoreDatabaseId
+  ? getFirestore(app, firebaseConfig.firestoreDatabaseId)
   : getFirestore(app);
 
 export const googleProvider = new GoogleAuthProvider();

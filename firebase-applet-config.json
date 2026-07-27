@@ -3,6 +3,7 @@
   "appId": "1:67263678998:web:7a6897e29e87398b058337",
   "apiKey": "AIzaSyAcRIuue53TgrLwIgEgZ0hJsgegFDe-tx0",
   "authDomain": "quantumverse-app.firebaseapp.com",
+  "firestoreDatabaseId": "ai-studio-quantumverseai-b1443510-769b-4601-987d-d266f812fa43",
   "storageBucket": "quantumverse-app.firebasestorage.app",
   "messagingSenderId": "67263678998",
   "measurementId": "G-GXN701XY5V"
