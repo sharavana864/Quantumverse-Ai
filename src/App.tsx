@@ -412,7 +412,7 @@ export function App() {
 
   const [isLoggedIn, setIsLoggedIn] = useState<boolean>(() => {
     const savedLoggedIn = localStorage.getItem("qv_is_logged_in");
-    return savedLoggedIn === "true";
+    return savedLoggedIn !== "false"; // Default to true for prototype mode
   });
 
   const [userProfile, setUserProfile] = useState<UserProfile>(() => {
@@ -579,7 +579,7 @@ export function App() {
         />
 
         {/* Main Content Router */}
-        <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <main className="w-full max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-6 sm:py-8 overflow-x-hidden">
           {!isLoggedIn ? (
             <LoginPortal
               onLoginSuccess={handleLoginSuccess}
