@@ -445,13 +445,16 @@ export function App() {
     return () => unsubscribe();
   }, []);
 
-  // Save session state to localStorage and sync updates to Firestore
+  // Save session state to localStorage instantly, and debounce Firestore sync to prevent UI lag
   useEffect(() => {
     localStorage.setItem("qv_is_logged_in", isLoggedIn ? "true" : "false");
     localStorage.setItem("qv_current_user", JSON.stringify(userProfile));
 
     if (auth.currentUser) {
-      saveUserProfileToFirestore(auth.currentUser.uid, userProfile);
+      const timer = setTimeout(() => {
+        saveUserProfileToFirestore(auth.currentUser!.uid, userProfile);
+      }, 1000);
+      return () => clearTimeout(timer);
     }
   }, [isLoggedIn, userProfile]);
 

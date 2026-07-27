@@ -59,10 +59,7 @@ export const LoginPortal: React.FC<LoginPortalProps> = ({
     try {
       const result = await signInWithPopup(auth, googleProvider);
       const profile = await syncUserProfile(result.user);
-      setNotification(`Google SSO Verified! Welcome, ${profile.name}!`);
-      setTimeout(() => {
-        onLoginSuccess(profile);
-      }, 600);
+      onLoginSuccess(profile);
     } catch (err: any) {
       console.error("Google Auth Error:", err);
       if (err.code === "auth/popup-closed-by-user") {
@@ -87,10 +84,7 @@ export const LoginPortal: React.FC<LoginPortalProps> = ({
     try {
       const userCredential = await signInWithEmailAndPassword(auth, loginEmail.trim(), loginPassword);
       const profile = await syncUserProfile(userCredential.user);
-      setNotification(`Authenticated! Welcome back, ${profile.name}.`);
-      setTimeout(() => {
-        onLoginSuccess(profile);
-      }, 600);
+      onLoginSuccess(profile);
     } catch (err: any) {
       console.error("Login Error:", err);
       if (err.code === "auth/invalid-credential" || err.code === "auth/user-not-found" || err.code === "auth/wrong-password") {
@@ -125,10 +119,7 @@ export const LoginPortal: React.FC<LoginPortalProps> = ({
       profile.title = signupTitle || "Quantum Scholar";
       profile.bio = signupBio || "Exploring qubits, circuit synthesis & quantum algorithms.";
 
-      setNotification(`Account Created for ${profile.name}! Launching Person Page...`);
-      setTimeout(() => {
-        onLoginSuccess(profile);
-      }, 700);
+      onLoginSuccess(profile);
     } catch (err: any) {
       console.error("Signup Error:", err);
       if (err.code === "auth/email-already-in-use") {
