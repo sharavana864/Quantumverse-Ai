@@ -7,6 +7,7 @@ import {
   Sparkles
 } from "lucide-react";
 import { LeaderboardEntry, UserProfile } from "../types";
+import { playAchievementSound } from "../utils/soundEffects";
 
 interface GamificationViewProps {
   userProfile?: UserProfile;
@@ -80,6 +81,7 @@ export const GamificationView: React.FC<GamificationViewProps> = ({ userProfile,
 
     setTimeout(() => {
       setBattleActive(false);
+      playAchievementSound();
       setBattleResult(
         `VICTORY! You created a Bell state in 1.2s with 100% fidelity vs Alex Chen. +150 XP awarded to ${userName}!`
       );

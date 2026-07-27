@@ -11,6 +11,12 @@ import {
   BookOpen,
 } from "lucide-react";
 import { QuizQuestion } from "../types";
+import {
+  playCorrectSound,
+  playIncorrectSound,
+  playAchievementSound,
+  playQuizCompleteSound,
+} from "../utils/soundEffects";
 
 interface QuizModalProps {
   isOpen: boolean;
@@ -108,6 +114,9 @@ export const QuizModal: React.FC<QuizModalProps> = ({
 
     if (selectedOption === currentQ.correctIndex) {
       setScore((prev) => prev + 1);
+      playCorrectSound();
+    } else {
+      playIncorrectSound();
     }
   };
 
@@ -118,7 +127,13 @@ export const QuizModal: React.FC<QuizModalProps> = ({
       setIsAnswerSubmitted(false);
     } else {
       setQuizFinished(true);
-      onQuizComplete(score + (selectedOption === currentQ?.correctIndex ? 1 : 0), questions.length);
+      const finalScore = score + (selectedOption === currentQ?.correctIndex ? 1 : 0);
+      if (finalScore === questions.length) {
+        playAchievementSound();
+      } else {
+        playQuizCompleteSound();
+      }
+      onQuizComplete(finalScore, questions.length);
     }
   };
 

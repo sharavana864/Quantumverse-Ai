@@ -39,6 +39,7 @@ import { LoginPortal } from "./components/LoginPortal";
 import { MODULES_DATA } from "./data/modulesData";
 import { INITIAL_USER_PROFILE } from "./data/userProfile";
 import { UserProfile } from "./types";
+import { playXpGainSound, playAchievementSound } from "./utils/soundEffects";
 import {
   auth,
   signOut,
@@ -496,25 +497,53 @@ export function App() {
 
   const handleQuizComplete = (score: number, total: number) => {
     const xpGained = score * 50;
-    setUserProfile((prev) => ({
-      ...prev,
-      totalXP: prev.totalXP + xpGained,
-    }));
+    if (xpGained > 0) {
+      playXpGainSound();
+    }
+    setUserProfile((prev) => {
+      const newXP = prev.totalXP + xpGained;
+      const newLevel = Math.floor(newXP / 250) + 1;
+      if (newLevel > prev.level) {
+        playAchievementSound();
+      }
+      return {
+        ...prev,
+        totalXP: newXP,
+        level: newLevel,
+      };
+    });
   };
 
   const handleChallengeSolved = (challengeId: string, points: number) => {
-    setUserProfile((prev) => ({
-      ...prev,
-      totalXP: prev.totalXP + points,
-      solvedChallengeIds: [...prev.solvedChallengeIds, challengeId],
-    }));
+    playAchievementSound();
+    setUserProfile((prev) => {
+      const newXP = prev.totalXP + points;
+      const newLevel = Math.floor(newXP / 250) + 1;
+      return {
+        ...prev,
+        totalXP: newXP,
+        level: newLevel,
+        solvedChallengeIds: [...prev.solvedChallengeIds, challengeId],
+      };
+    });
   };
 
   const handleGainXP = (xp: number) => {
-    setUserProfile((prev) => ({
-      ...prev,
-      totalXP: prev.totalXP + xp,
-    }));
+    if (xp > 0) {
+      playXpGainSound();
+    }
+    setUserProfile((prev) => {
+      const newXP = prev.totalXP + xp;
+      const newLevel = Math.floor(newXP / 250) + 1;
+      if (newLevel > prev.level) {
+        playAchievementSound();
+      }
+      return {
+        ...prev,
+        totalXP: newXP,
+        level: newLevel,
+      };
+    });
   };
 
   const handleUpdateProfile = (updated: Partial<UserProfile>) => {

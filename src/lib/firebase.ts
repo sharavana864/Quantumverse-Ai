@@ -27,8 +27,9 @@ const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
 export const auth = getAuth(app);
 
 // Initialize Firestore with custom database ID if present, or default
-export const db = firebaseConfig.firestoreDatabaseId
-  ? getFirestore(app, firebaseConfig.firestoreDatabaseId)
+const customDbId = (firebaseConfig as { firestoreDatabaseId?: string }).firestoreDatabaseId;
+export const db = customDbId
+  ? getFirestore(app, customDbId)
   : getFirestore(app);
 
 export const googleProvider = new GoogleAuthProvider();
