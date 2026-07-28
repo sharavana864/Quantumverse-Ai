@@ -33,11 +33,25 @@ export interface QuizQuestion {
   recommendedTopic: string;
 }
 
+export interface VideoChapter {
+  time: string;
+  title: string;
+}
+
 export interface Lesson {
   id: string;
   title: string;
   duration: string;
   videoUrl?: string;
+  videoTitle?: string;
+  videoTranscript?: string;
+  videoChapters?: VideoChapter[];
+  imageUrl?: string;
+  imageCaption?: string;
+  diagramType?: "circuit" | "bloch" | "matrix" | "hardware" | "entanglement" | "superposition" | "oracle";
+  fullTextContent?: string;
+  formulaLatex?: string;
+  matrixNotation?: string;
   summary: string;
   keyConcepts: string[];
   starterCode?: string;
