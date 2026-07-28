@@ -1,6 +1,6 @@
 {
   "name": "QuantumVerse AI",
-  "description": "Personalized quantum computing learning ecosystem with interactive Bloch sphere visualizer, Qiskit/Cirq coding playground, structured modules, AI tutor, adaptive quizzes, gamification, and events hub.",
+  "description": "QuantumVerse AI is an AI-powered learning platform that makes quantum computing accessible through personalized learning paths, interactive quantum circuit simulations, adaptive quizzes, AI tutoring, and hands-on projects.",
   "requestFramePermissions": ["microphone"],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }
