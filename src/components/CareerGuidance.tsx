@@ -10,6 +10,7 @@ import {
   CERTIFICATIONS_LIST,
   INTERNSHIP_OPPORTUNITIES,
 } from "../data/careerData";
+import { FormattedAIText } from "./FormattedAIText";
 
 interface CareerGuidanceProps {
   theme?: "dark" | "light";
@@ -249,11 +250,11 @@ export const CareerGuidance: React.FC<CareerGuidanceProps> = ({ theme = "dark" }
           </div>
 
           {generatedRoadmap && (
-            <div className={`border rounded-2xl p-6 space-y-3 font-sans text-xs leading-relaxed whitespace-pre-wrap animate-in fade-in ${
+            <div className={`border rounded-2xl p-6 space-y-3 font-sans text-xs leading-relaxed animate-in fade-in ${
               isDark ? "bg-[#121212] border-[#7F00FF]/30 text-[#C0C0C0]" : "bg-slate-50 border-slate-200 text-slate-800"
             }`}>
               <span className={`font-black text-sm uppercase block ${isDark ? "text-[#A3FF00]" : "text-[#00B894]"}`}>Your Tailored Quantum Roadmap</span>
-              {generatedRoadmap}
+              <FormattedAIText content={generatedRoadmap} isDark={isDark} />
             </div>
           )}
         </div>

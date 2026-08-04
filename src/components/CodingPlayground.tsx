@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import { CodingChallenge } from "../types";
 import { CODING_CHALLENGES } from "../data/challengesData";
+import { FormattedAIText } from "./FormattedAIText";
 
 interface CodingPlaygroundProps {
   onChallengeSolved?: (challengeId: string, points: number) => void;
@@ -300,8 +301,8 @@ export const CodingPlayground: React.FC<CodingPlaygroundProps> = ({
                 <Sparkles className="w-4 h-4 text-[#FFC312]" />
                 <span>Quantum AI Debugger Recommendations</span>
               </div>
-              <div className="prose prose-xs leading-relaxed whitespace-pre-wrap">
-                {aiAnalysis}
+              <div className="leading-relaxed">
+                <FormattedAIText content={aiAnalysis} isDark={isDark} />
               </div>
             </div>
           )}

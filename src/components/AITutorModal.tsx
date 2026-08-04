@@ -12,6 +12,7 @@ import {
   BookOpen,
 } from "lucide-react";
 import { SkillLevel } from "../types";
+import { FormattedAIText, cleanRawMarkdown } from "./FormattedAIText";
 
 interface AITutorModalProps {
   isOpen: boolean;
@@ -218,7 +219,11 @@ export const AITutorModal: React.FC<AITutorModalProps> = ({
                     : "bg-[#1C1C1C] border border-[#7F00FF]/30 text-white shadow-lg space-y-2"
                 }`}
               >
-                <p className="whitespace-pre-wrap">{msg.text}</p>
+                {msg.sender === "user" ? (
+                  <p className="whitespace-pre-wrap">{msg.text}</p>
+                ) : (
+                  <FormattedAIText content={msg.text} isDark={true} />
+                )}
                 {msg.isSimulated && (
                   <span className="text-[10px] text-gray-400 block italic font-mono pt-1">
                     * Generated via Quantum AI Tutor
