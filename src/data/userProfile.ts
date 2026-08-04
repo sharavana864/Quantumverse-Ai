@@ -61,6 +61,7 @@ export function createNewUserProfile(name: string, email: string, provider: "goo
     badges: INITIAL_BADGES.map(({ unlockedAt, ...b }) => ({ ...b, unlocked: false })),
     completedLessonIds: [],
     solvedChallengeIds: [],
+    solvedDailyChallengeDates: [],
     certificates: [],
   };
 }

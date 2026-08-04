@@ -117,6 +117,21 @@ export interface CircuitSimulationResult {
   cirqCode: string;
 }
 
+export interface DailyChallenge {
+  id: string;
+  dateStr: string;
+  title: string;
+  category: "Circuit Puzzle" | "Code Snippet" | "Quantum Logic" | "Algorithm Prediction";
+  difficulty: "Easy" | "Medium" | "Hard";
+  xpReward: number;
+  description: string;
+  codeSnippet?: string;
+  options: string[];
+  correctIndex: number;
+  explanation: string;
+  hint?: string;
+}
+
 export interface CodingChallenge {
   id: string;
   title: string;
@@ -167,6 +182,7 @@ export interface UserProfile {
   badges: Badge[];
   completedLessonIds: string[];
   solvedChallengeIds: string[];
+  solvedDailyChallengeDates?: string[];
   certificates: Certificate[];
 }
 

@@ -354,6 +354,125 @@ Return JSON format:
     }
   });
 
+  // 5. Daily Quantum Challenge Generator
+  app.post("/api/ai/daily-challenge", async (req, res) => {
+    const todayStr = req.body?.dateStr || new Date().toISOString().split("T")[0];
+
+    const fallbackChallenges = [
+      {
+        id: `dc-${todayStr}-1`,
+        dateStr: todayStr,
+        title: "Bell State Phase Flip Puzzle",
+        category: "Circuit Puzzle",
+        difficulty: "Medium",
+        xpReward: 75,
+        description: "You are given a two-qubit circuit initialized to |00⟩. You apply a Hadamard gate to Qubit 0, followed by a CNOT gate with Qubit 0 as control and Qubit 1 as target, and finally a Z-gate to Qubit 0. What is the resulting quantum state?",
+        codeSnippet: `# Qiskit Circuit Construction\nfrom qiskit import QuantumCircuit\nqc = QuantumCircuit(2)\nqc.h(0)\nqc.cx(0, 1)\nqc.z(0)  # Apply Pauli-Z to control qubit`,
+        options: [
+          "(|00⟩ + |11⟩) / √2  [Phi Plus Bell State]",
+          "(|00⟩ - |11⟩) / √2  [Phi Minus Bell State]",
+          "(|01⟩ + |10⟩) / √2  [Psi Plus Bell State]",
+          "(|01⟩ - |10⟩) / √2  [Psi Minus Bell State]"
+        ],
+        correctIndex: 1,
+        explanation: "After H(0) and CX(0,1), the state is (|00⟩ + |11⟩)/√2. Applying Z(0) flips the sign of the |1⟩ amplitude, yielding (|00⟩ - |11⟩)/√2 (Phi Minus Bell State).",
+        hint: "Recall that the Pauli-Z gate transforms |0⟩ -> |0⟩ and |1⟩ -> -|1⟩."
+      },
+      {
+        id: `dc-${todayStr}-2`,
+        dateStr: todayStr,
+        title: "SWAP Gate CNOT Decomposition",
+        category: "Quantum Logic",
+        difficulty: "Easy",
+        xpReward: 75,
+        description: "In quantum circuit compilation, a SWAP gate between two qubits can be constructed using only CNOT gates. What is the minimum number of CNOT gates required?",
+        codeSnippet: `# Expressing SWAP(q0, q1) using CNOTs\n# How many CNOT gates with alternating control/target wires are needed?`,
+        options: [
+          "1 CNOT gate",
+          "2 CNOT gates",
+          "3 CNOT gates",
+          "4 CNOT gates"
+        ],
+        correctIndex: 2,
+        explanation: "A SWAP gate is decomposed into 3 alternating CNOT gates: CX(0,1), CX(1,0), and CX(0,1). This exchanges quantum information without extra single-qubit gates.",
+        hint: "Think of classical bitwise XOR swapping: x = x ^ y; y = x ^ y; x = x ^ y."
+      },
+      {
+        id: `dc-${todayStr}-3`,
+        dateStr: todayStr,
+        title: "Grover Diffusion Operator Effect",
+        category: "Algorithm Prediction",
+        difficulty: "Hard",
+        xpReward: 100,
+        description: "In Grover's search algorithm, after the Oracle inverts the target state's phase, what geometric transformation does the Diffusion Operator perform?",
+        codeSnippet: `# Grover Diffusion Operator\n# H -> X -> Multi-Control Z -> X -> H`,
+        options: [
+          "It sets all non-target state amplitudes to 0",
+          "It reflects all state amplitudes across the mean amplitude, amplifying the target state",
+          "It rotates the state vector by 90 degrees around the Z axis",
+          "It introduces uniform random phase noise"
+        ],
+        correctIndex: 1,
+        explanation: "The Diffusion Operator computes the average amplitude across all states and reflects amplitudes across this mean. Since the target state phase was inverted by the Oracle, inversion about the mean drastically amplifies its probability.",
+        hint: "Inversion about the mean: new_amplitude = 2 * average - old_amplitude."
+      }
+    ];
+
+    // Pick a deterministic fallback based on day sum
+    const dayCharSum = todayStr.split("").reduce((acc, char) => acc + char.charCodeAt(0), 0);
+    const fallbackChallenge = fallbackChallenges[dayCharSum % fallbackChallenges.length];
+
+    try {
+      const ai = getGenAI();
+      if (!ai) {
+        return res.json({ challenge: fallbackChallenge, isSimulated: true });
+      }
+
+      const prompt = `Generate a daily quantum computing challenge puzzle for today (${todayStr}).
+It can be about Qiskit code snippets, quantum logic, gate matrices, or algorithms.
+Return strict JSON:
+{
+  "id": "dc-${todayStr}",
+  "dateStr": "${todayStr}",
+  "title": "Short Catchy Challenge Title",
+  "category": "Circuit Puzzle",
+  "difficulty": "Medium",
+  "xpReward": 75,
+  "description": "Clear challenge question scenario.",
+  "codeSnippet": "Optional python or circuit snippet",
+  "options": ["Option A", "Option B", "Option C", "Option D"],
+  "correctIndex": 0,
+  "explanation": "Detailed explanation of why answer is correct.",
+  "hint": "Nudge hint"
+}`;
+
+      const response = await ai.models.generateContent({
+        model: "gemini-3.6-flash",
+        contents: prompt,
+        config: {
+          responseMimeType: "application/json",
+          temperature: 0.6,
+        },
+      });
+
+      const parsed = parseJsonResponse(response.text);
+      if (
+        parsed &&
+        typeof parsed === "object" &&
+        parsed.title &&
+        Array.isArray(parsed.options) &&
+        typeof parsed.correctIndex === "number"
+      ) {
+        return res.json({ challenge: parsed, isSimulated: false });
+      } else {
+        return res.json({ challenge: fallbackChallenge, isSimulated: true });
+      }
+    } catch (error: any) {
+      console.error("Daily Challenge Error:", error);
+      res.json({ challenge: fallbackChallenge, isSimulated: true });
+    }
+  });
+
   // Vite Integration for Dev vs Production
   if (process.env.NODE_ENV !== "production") {
     const vite = await createViteServer({
