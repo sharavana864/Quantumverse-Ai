@@ -38,7 +38,6 @@ import { CareerGuidance } from "./components/CareerGuidance";
 import { AboutView } from "./components/AboutView";
 import { AuthModal } from "./components/AuthModal";
 import { LoginPortal } from "./components/LoginPortal";
-import { DailyChallengeCard } from "./components/DailyChallengeCard";
 
 import { MODULES_DATA } from "./data/modulesData";
 import { INITIAL_USER_PROFILE } from "./data/userProfile";
@@ -90,12 +89,10 @@ const QUANTUM_QUOTES = [
 function DashboardView({
   userProfile,
   onOpenAITutor,
-  onGainXP,
   theme,
 }: {
   userProfile: UserProfile;
   onOpenAITutor?: () => void;
-  onGainXP: (amount: number, reason: string) => void;
   theme: "dark" | "light";
 }) {
   const isDark = theme === "dark";
@@ -232,14 +229,7 @@ function DashboardView({
         </div>
       </div>
 
-      {/* 4. Daily Quantum Challenge Section */}
-      <DailyChallengeCard
-        userProfile={userProfile}
-        onGainXP={onGainXP}
-        theme={theme}
-      />
-
-      {/* 5. Your Journey Roadmap Section */}
+      {/* 4. Your Journey Roadmap Section */}
       <div className="space-y-4 pt-2">
         <div className="flex items-center justify-between">
           <div>
@@ -486,7 +476,6 @@ export function App() {
                 <DashboardView
                   userProfile={userProfile}
                   onOpenAITutor={() => handleOpenAITutorWithTopic("Quantum Computing Overview")}
-                  onGainXP={handleGainXP}
                   theme={theme}
                 />
               }

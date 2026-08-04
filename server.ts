@@ -23,6 +23,99 @@ async function startServer() {
     return clean;
   }
 
+  // Generate dynamic, context-aware AI tutor responses when offline or missing API key
+  function generateDynamicTutorFallback(prompt: string, topic?: string, skillLevel?: string): string {
+    const query = (prompt || "").toLowerCase().trim();
+
+    if (query.includes("bloch") || query.includes("sphere") || query.includes("vector")) {
+      return `The **Bloch Sphere** is the fundamental 3D geometric visualization tool for a single qubit state:
+
+• **Geometrical Structure**: The North pole represents pure ground state |0⟩, while the South pole represents excited state |1⟩.
+• **Mathematical Representation**: Any pure state |ψ⟩ on the sphere is defined by polar angle θ and azimuthal angle φ:
+  |ψ⟩ = cos(θ/2)|0⟩ + e^(iφ)sin(θ/2)|1⟩
+• **Quantum Gate Rotations**: Applying unitary gates rotates the state vector around the sphere's axes. For instance, a Hadamard (H) gate rotates |0⟩ by 90° to the equator into equal superposition (|0⟩ + |1⟩)/√2.
+
+*Tip*: Explore the QuantumVerse Interactive Bloch Sphere visualizer in the app to manipulate θ and φ in real-time!`;
+    }
+
+    if (query.includes("hadamard") || query.includes("h gate") || query.includes("superposition")) {
+      return `**Quantum Superposition & The Hadamard (H) Gate**:
+
+1. **What is Superposition?**
+   Unlike classical bits that are strictly 0 OR 1, a qubit exists in a linear superposition of both basis states: |ψ⟩ = α|0⟩ + β|1⟩, where |α|² + |β|² = 1.
+
+2. **The Hadamard Matrix**:
+   H = (1/√2) * [[1, 1], [1, -1]]
+
+3. **Applying H to |0⟩**:
+   H|0⟩ = (|0⟩ + |1⟩) / √2 = |+⟩
+   Upon measurement, this creates an exact 50% probability of collapsing to 0 and 50% probability of collapsing to 1.
+
+Try applying the H gate in the QuantumVerse Circuit Builder to observe quantum state probability distributions!`;
+    }
+
+    if (query.includes("entangle") || query.includes("bell") || query.includes("cnot") || query.includes("cx")) {
+      return `**Quantum Entanglement & Bell States**:
+
+Quantum Entanglement is a non-classical correlation where two or more qubits share a unified quantum state. Measuring one qubit instantaneously determines the state of the other, regardless of spatial distance.
+
+**Creating a Bell State (|00⟩ + |11⟩)/√2**:
+1. Start with two qubits in ground state |00⟩.
+2. Apply Hadamard (H) to Qubit 0: creates superposition (|0⟩ + |1⟩)/√2 ⊗ |0⟩.
+3. Apply CNOT with Qubit 0 as Control and Qubit 1 as Target.
+4. Output: |Φ+⟩ = (|00⟩ + |11⟩) / √2.
+
+If you measure Qubit 0 as '1', Qubit 1 is guaranteed to collapse to '1' as well!`;
+    }
+
+    if (query.includes("qiskit") || query.includes("code") || query.includes("python") || query.includes("circuit")) {
+      return `**Executing Quantum Circuits in Python (Qiskit)**:
+
+Here is a complete, production-ready Qiskit script to generate superposition and measure quantum outcomes:
+
+\`\`\`python
+from qiskit import QuantumCircuit, transpile
+from qiskit_aer import AerSimulator
+
+# 1. Create a 2-qubit, 2-classical-bit circuit
+qc = QuantumCircuit(2, 2)
+
+# 2. Add Gates: Hadamard on q0, CNOT on q0->q1
+qc.h(0)
+qc.cx(0, 1)
+
+# 3. Measure both qubits into classical bits
+qc.measure([0, 1], [0, 1])
+
+# 4. Simulate on Qiskit Aer
+simulator = AerSimulator()
+compiled_qc = transpile(qc, simulator)
+job = simulator.run(compiled_qc, shots=1024)
+counts = job.result().get_counts()
+
+print("Quantum Measurement Results:", counts) # Returns ~50% '00' and ~50% '11'
+\`\`\`
+
+You can copy and run this code directly inside the QuantumVerse Coding Playground!`;
+    }
+
+    return `**Quantum Computing Breakdown (${skillLevel || "Beginner"} Level — ${topic || "Core Foundations"})**:
+
+Here is a comprehensive breakdown regarding **"${prompt}"**:
+
+1. **Fundamental Principle**:
+   Quantum systems store information using qubits governed by quantum mechanical phenomena: Superposition, Interference, and Entanglement.
+
+2. **State & Measurement**:
+   Before measurement, a qubit state |ψ⟩ = α|0⟩ + β|1⟩ contains continuous probability amplitudes. Measurement forces the wavefunction to collapse into a discrete classical outcome (0 or 1) with probability |α|² and |β|².
+
+3. **Unitary Transformations**:
+   All quantum operations (gates) are reversible unitary matrices U (U† U = I). They preserve total probability (|α|² + |β|² = 1) while rotating vectors in complex Hilbert space.
+
+4. **Interactive Recommendation**:
+   To visualize this concept directly, test this gate combination in the QuantumVerse Circuit Builder or ask me to explain specific gates (H, X, Z, CNOT)!`;
+  }
+
   // Helper to initialize GoogleGenAI safely on demand
   function getGenAI() {
     const apiKey = process.env.GEMINI_API_KEY;
@@ -65,26 +158,33 @@ async function startServer() {
   function buildGeminiContents(prompt: string, history?: any[]) {
     const formatted: { role: string; parts: { text: string }[] }[] = [];
 
-    if (history && Array.isArray(history) && history.length > 0) {
-      for (const msg of history) {
-        if (!msg || !msg.text) continue;
-        const role = msg.role === "user" ? "user" : "model";
-        // Drop leading model messages because Gemini contents MUST start with 'user'
-        if (formatted.length === 0 && role === "model") continue;
+    const validHistory = Array.isArray(history) ? history.filter((m) => m && m.text && m.text.trim()) : [];
+    const recentHistory = validHistory.slice(-10);
 
-        if (formatted.length > 0 && formatted[formatted.length - 1].role === role) {
-          formatted[formatted.length - 1].parts[0].text += `\n${msg.text}`;
-        } else {
-          formatted.push({ role, parts: [{ text: msg.text }] });
-        }
+    for (const msg of recentHistory) {
+      const role = msg.role === "user" ? "user" : "model";
+      if (formatted.length === 0 && role === "model") continue;
+
+      if (formatted.length > 0 && formatted[formatted.length - 1].role === role) {
+        formatted[formatted.length - 1].parts[0].text += `\n\n${msg.text}`;
+      } else {
+        formatted.push({ role, parts: [{ text: msg.text }] });
       }
     }
 
-    // Append current prompt
-    if (formatted.length > 0 && formatted[formatted.length - 1].role === "user") {
-      formatted[formatted.length - 1].parts[0].text += `\n${prompt}`;
-    } else {
-      formatted.push({ role: "user", parts: [{ text: prompt }] });
+    if (prompt && prompt.trim()) {
+      if (formatted.length > 0 && formatted[formatted.length - 1].role === "user") {
+        const lastText = formatted[formatted.length - 1].parts[0].text;
+        if (!lastText.endsWith(prompt.trim())) {
+          formatted[formatted.length - 1].parts[0].text += `\n\n${prompt.trim()}`;
+        }
+      } else {
+        formatted.push({ role: "user", parts: [{ text: prompt.trim() }] });
+      }
+    }
+
+    if (formatted.length === 0) {
+      formatted.push({ role: "user", parts: [{ text: prompt || "Explain quantum computing fundamentals" }] });
     }
 
     return formatted;
@@ -99,25 +199,25 @@ async function startServer() {
 
   // 1. AI Tutor Endpoint
   app.post("/api/ai/tutor", async (req, res) => {
+    const { prompt = "", topic = "", skillLevel = "", history = [] } = req.body || {};
     try {
-      const { prompt, topic, skillLevel, history } = req.body;
       const ai = getGenAI();
 
       if (!ai) {
         return res.json({
-          response: `Simulated Quantum AI Tutor - ${skillLevel || "Beginner"} Mode\n\nGreat question regarding ${topic || "Quantum Computing"}! Here is a step-by-step breakdown:\n\n1. Core Concept: Quantum states exist in Hilbert space where superposition allows linear combinations of |0⟩ and |1⟩.\n2. Intuition: Unlike classical bits (0 OR 1), a qubit is represented by a unit vector on the Bloch sphere defined by θ and φ angles.\n3. Practical Application: Gates like Hadamard (H) create equal superposition (|0⟩ + |1⟩)/√2.\n\nPro-tip: Open the Bloch Sphere visualizer in QuantumVerse to rotate the state vector and see this in action!`,
+          response: generateDynamicTutorFallback(prompt, topic, skillLevel),
           isSimulated: true,
         });
       }
 
-      const systemInstruction = `You are QuantumVerse AI Tutor, an expert, enthusiastic quantum computing professor.
+      const systemInstruction = `You are QuantumVerse AI Tutor, an expert, encouraging quantum computing professor.
 Target Audience Skill Level: ${skillLevel || "Beginner"}.
 Current Learning Context: ${topic || "General Quantum Computing"}.
 Guidelines:
-- Provide clear, mathematically intuitive, and step-by-step explanations suited to ${skillLevel}.
-- Include Dirac notation (|0⟩, |1⟩, |ψ⟩) when relevant, but keep it accessible.
-- Recommend practical steps like testing in the QuantumVerse Bloch sphere visualizer or Coding Playground.
-- Do NOT output raw markdown header symbols like ## ** or ### or markdown bold symbols. Present text cleanly in readable prose with clear paragraph breaks, bullet points, and numbered lists.`;
+- Directly answer the user's question with a thorough, engaging, and comprehensive explanation suited to ${skillLevel}.
+- Include mathematical notation (Dirac notation |0⟩, |1⟩, |ψ⟩ when relevant), conceptual intuition, and practical quantum code/examples (Qiskit or Cirq).
+- Format responses cleanly with bold headings, bullet points, numbered steps, and code blocks.
+- Provide complete, well-structured explanations without truncating ideas.`;
 
       const contents = buildGeminiContents(prompt || "Explain quantum computing fundamentals", history);
 
@@ -127,6 +227,7 @@ Guidelines:
         config: {
           systemInstruction,
           temperature: 0.7,
+          maxOutputTokens: 2048,
         },
       });
 
@@ -142,7 +243,7 @@ Guidelines:
     } catch (error: any) {
       console.error("AI Tutor Error:", error);
       res.json({
-        response: `Quantum AI Tutor Note: Superposition allows qubits to represent multiple states simultaneously (|ψ⟩ = α|0⟩ + β|1⟩) until measurement collapses the wavefunction. Try exploring the Bloch Sphere or Circuit Builder for visual proof!`,
+        response: generateDynamicTutorFallback(prompt, topic, skillLevel),
         isSimulated: true,
         error: error.message,
       });
@@ -219,7 +320,8 @@ Return strict JSON as an array of objects with schema:
         contents: prompt,
         config: {
           responseMimeType: "application/json",
-          temperature: 0.6,
+          temperature: 0.5,
+          maxOutputTokens: 800,
         },
       });
 
@@ -276,6 +378,7 @@ Return JSON with format:
         config: {
           responseMimeType: "application/json",
           temperature: 0.4,
+          maxOutputTokens: 800,
         },
       });
 
@@ -339,6 +442,7 @@ Return JSON format:
         config: {
           responseMimeType: "application/json",
           temperature: 0.5,
+          maxOutputTokens: 800,
         },
       });
 
@@ -351,125 +455,6 @@ Return JSON format:
     } catch (error: any) {
       console.error("Notes Summary Error:", error);
       res.json(fallbackNotes);
-    }
-  });
-
-  // 5. Daily Quantum Challenge Generator
-  app.post("/api/ai/daily-challenge", async (req, res) => {
-    const todayStr = req.body?.dateStr || new Date().toISOString().split("T")[0];
-
-    const fallbackChallenges = [
-      {
-        id: `dc-${todayStr}-1`,
-        dateStr: todayStr,
-        title: "Bell State Phase Flip Puzzle",
-        category: "Circuit Puzzle",
-        difficulty: "Medium",
-        xpReward: 75,
-        description: "You are given a two-qubit circuit initialized to |00⟩. You apply a Hadamard gate to Qubit 0, followed by a CNOT gate with Qubit 0 as control and Qubit 1 as target, and finally a Z-gate to Qubit 0. What is the resulting quantum state?",
-        codeSnippet: `# Qiskit Circuit Construction\nfrom qiskit import QuantumCircuit\nqc = QuantumCircuit(2)\nqc.h(0)\nqc.cx(0, 1)\nqc.z(0)  # Apply Pauli-Z to control qubit`,
-        options: [
-          "(|00⟩ + |11⟩) / √2  [Phi Plus Bell State]",
-          "(|00⟩ - |11⟩) / √2  [Phi Minus Bell State]",
-          "(|01⟩ + |10⟩) / √2  [Psi Plus Bell State]",
-          "(|01⟩ - |10⟩) / √2  [Psi Minus Bell State]"
-        ],
-        correctIndex: 1,
-        explanation: "After H(0) and CX(0,1), the state is (|00⟩ + |11⟩)/√2. Applying Z(0) flips the sign of the |1⟩ amplitude, yielding (|00⟩ - |11⟩)/√2 (Phi Minus Bell State).",
-        hint: "Recall that the Pauli-Z gate transforms |0⟩ -> |0⟩ and |1⟩ -> -|1⟩."
-      },
-      {
-        id: `dc-${todayStr}-2`,
-        dateStr: todayStr,
-        title: "SWAP Gate CNOT Decomposition",
-        category: "Quantum Logic",
-        difficulty: "Easy",
-        xpReward: 75,
-        description: "In quantum circuit compilation, a SWAP gate between two qubits can be constructed using only CNOT gates. What is the minimum number of CNOT gates required?",
-        codeSnippet: `# Expressing SWAP(q0, q1) using CNOTs\n# How many CNOT gates with alternating control/target wires are needed?`,
-        options: [
-          "1 CNOT gate",
-          "2 CNOT gates",
-          "3 CNOT gates",
-          "4 CNOT gates"
-        ],
-        correctIndex: 2,
-        explanation: "A SWAP gate is decomposed into 3 alternating CNOT gates: CX(0,1), CX(1,0), and CX(0,1). This exchanges quantum information without extra single-qubit gates.",
-        hint: "Think of classical bitwise XOR swapping: x = x ^ y; y = x ^ y; x = x ^ y."
-      },
-      {
-        id: `dc-${todayStr}-3`,
-        dateStr: todayStr,
-        title: "Grover Diffusion Operator Effect",
-        category: "Algorithm Prediction",
-        difficulty: "Hard",
-        xpReward: 100,
-        description: "In Grover's search algorithm, after the Oracle inverts the target state's phase, what geometric transformation does the Diffusion Operator perform?",
-        codeSnippet: `# Grover Diffusion Operator\n# H -> X -> Multi-Control Z -> X -> H`,
-        options: [
-          "It sets all non-target state amplitudes to 0",
-          "It reflects all state amplitudes across the mean amplitude, amplifying the target state",
-          "It rotates the state vector by 90 degrees around the Z axis",
-          "It introduces uniform random phase noise"
-        ],
-        correctIndex: 1,
-        explanation: "The Diffusion Operator computes the average amplitude across all states and reflects amplitudes across this mean. Since the target state phase was inverted by the Oracle, inversion about the mean drastically amplifies its probability.",
-        hint: "Inversion about the mean: new_amplitude = 2 * average - old_amplitude."
-      }
-    ];
-
-    // Pick a deterministic fallback based on day sum
-    const dayCharSum = todayStr.split("").reduce((acc, char) => acc + char.charCodeAt(0), 0);
-    const fallbackChallenge = fallbackChallenges[dayCharSum % fallbackChallenges.length];
-
-    try {
-      const ai = getGenAI();
-      if (!ai) {
-        return res.json({ challenge: fallbackChallenge, isSimulated: true });
-      }
-
-      const prompt = `Generate a daily quantum computing challenge puzzle for today (${todayStr}).
-It can be about Qiskit code snippets, quantum logic, gate matrices, or algorithms.
-Return strict JSON:
-{
-  "id": "dc-${todayStr}",
-  "dateStr": "${todayStr}",
-  "title": "Short Catchy Challenge Title",
-  "category": "Circuit Puzzle",
-  "difficulty": "Medium",
-  "xpReward": 75,
-  "description": "Clear challenge question scenario.",
-  "codeSnippet": "Optional python or circuit snippet",
-  "options": ["Option A", "Option B", "Option C", "Option D"],
-  "correctIndex": 0,
-  "explanation": "Detailed explanation of why answer is correct.",
-  "hint": "Nudge hint"
-}`;
-
-      const response = await ai.models.generateContent({
-        model: "gemini-3.6-flash",
-        contents: prompt,
-        config: {
-          responseMimeType: "application/json",
-          temperature: 0.6,
-        },
-      });
-
-      const parsed = parseJsonResponse(response.text);
-      if (
-        parsed &&
-        typeof parsed === "object" &&
-        parsed.title &&
-        Array.isArray(parsed.options) &&
-        typeof parsed.correctIndex === "number"
-      ) {
-        return res.json({ challenge: parsed, isSimulated: false });
-      } else {
-        return res.json({ challenge: fallbackChallenge, isSimulated: true });
-      }
-    } catch (error: any) {
-      console.error("Daily Challenge Error:", error);
-      res.json({ challenge: fallbackChallenge, isSimulated: true });
     }
   });
 
